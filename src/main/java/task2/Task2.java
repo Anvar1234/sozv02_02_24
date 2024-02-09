@@ -3,6 +3,7 @@ package task2;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A solis ortu usque ad occasum
@@ -44,14 +45,20 @@ public class Task2 {
 
         System.out.println("\nTask2_1 ____________________________________________");
         //Вывод варианта поиска только 'О' символа:
+        char engChar = 'O';
+        char rusChar = 'О';
         System.out.
-                printf("Task1: Англ букв 'O' = %s, Русских букв 'O' = %s \n",
-                        countCharOInText(poem)[0],
-                        countCharOInText(poem)[1]);
+                printf("Task1: Англ букв '%s' = %s, Русских букв '%s' = %s \n",
+                        engChar,
+                        searchForNumberOfCharactersInText(poem, engChar),
+                        rusChar,
+                        searchForNumberOfCharactersInText(poem, rusChar));
+
 
         System.out.println("\nTask2_2 ____________________________________________");
         System.out.println("toUpperCase: ");
-        System.out.println(toUppercase(poem));
+        StringBuilder result = convertTextToUppercase(poem);
+        System.out.println(result.toString());
 
 
         System.out.println("\nTask2_3 ____________________________________________");
@@ -64,41 +71,44 @@ public class Task2 {
 
 
     //todo 1) Необходимо посчитать и вывести количество английских и русских букв 'o' в стихотворении
-    //вариант поиска только 'О' символа:
-    public static int[] countCharOInText(List<String> poem) {
-        int countOfEng = 0;
-        int countOfRus = 0;
+    //вариант поиска одного произвольного символа:
 
-        for (String s : poem) {
-            for (int i = 0; i < s.length(); i++) {
-                if (s.toLowerCase().charAt(i) == Character.toLowerCase('o')) countOfEng++;
-                else if (s.toLowerCase().charAt(i) == Character.toLowerCase('о')) countOfRus++;
-            }
-        }
-        return new int[]{countOfEng, countOfRus};
+    private static long searchForNumberOfCharactersInText(List<String> poem, char c) {
+        return poem.stream()
+                .map(String::toLowerCase)
+                .flatMapToInt(line -> line.toLowerCase().chars())
+                .mapToObj(ch -> (char) ch)
+                .filter(ch -> ch == Character.toLowerCase(c))
+                .count();
     }
 
 
     // todo 2) Необходимо каждое слово с тремя и более русскими гласными перевести в верхний регистр
-    //Здесь не сразу допер раскидать по отдельным методам, поэтому такая вложенность.
-    public static StringBuilder toUppercase(List<String> poem) {
-        String vowelLetters = "аеёиоуыэюя";
+    //Здесь не сделал метод textToUpperCase сразу через поток, так как не получалось добавить в конец каждой строки перенос строки.
+    public static StringBuilder convertTextToUppercase(List<String> poem) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (String s : poem) {
-            String[] words = s.split(" ");
-            for (String word : words) {
-                int vowelCount = 0;
-                for (int i = 0; i < word.length(); i++) {
-                    if (vowelLetters.contains(String.valueOf(Character.toLowerCase(word.charAt(i))))) vowelCount++;
-                }
-                if (vowelCount >= 3) {
-                    stringBuilder.append(word.toUpperCase()).append(" ");
-                } else stringBuilder.append(word).append(" ");
-            }
+        for (String line : poem) {
+            stringBuilder.append(convertLineToUppercase(line));
             stringBuilder.append(" \n");
         }
         return stringBuilder;
     }
+
+    private static String convertLineToUppercase(String line) {
+        String[] words = line.split(" ");
+        return Arrays.stream(words)
+                .map(word -> vowelCounting(word) >= 3 ? word.toUpperCase() : word)
+                .collect(Collectors.joining(" "));
+    }
+
+    private static long vowelCounting(String word) {
+        String vowelLetters = "аеёиоуыэюя";
+        return word.chars()
+                .mapToObj(ch -> (char) ch)
+                .filter(ch -> vowelLetters.contains(String.valueOf(Character.toLowerCase(ch))))
+                .count();
+    }
+
 
     // todo 3) Каждое пятое слово вне зависимости от предыдущих пунктов перевести в чередующийся регистр (Начинается с верхнего, Sergey -> SeRgEy)
     public static List<String> convertTextToAlternatingRegister(List<String> poem) {
