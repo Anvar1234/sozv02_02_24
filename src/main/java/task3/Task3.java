@@ -55,7 +55,7 @@ public class Task3 {
         if (isValidText(str)) {
             int code = 0;
             for (int i = 0; i < str.length(); i++) {
-                System.out.println(str.charAt(i));
+                code += str.charAt(i);
             }
             return Optional.of(code);
         }
